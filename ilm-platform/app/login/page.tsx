@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,27 +10,51 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [fullName, setFullName] = useState('')
   const [role, setRole] = useState<'student' | 'teacher'>('student')
-  const router = useRouter()
+  const [debug, setDebug] = useState('')
   const supabase = createClient()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setDebug('')
 
-    if (mode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) setError(error.message)
-      else router.push('/dashboard')
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { full_name: fullName, role } }
-      })
-      if (error) setError(error.message)
-      else router.push('/dashboard')
+    try {
+      if (mode === 'login') {
+        setDebug('Signing in…')
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+          setError(error.message)
+          setDebug('Error: ' + error.message)
+          setLoading(false)
+          return
+        }
+        setDebug('Signed in! User: ' + data.user?.email + ' — redirecting…')
+        setTimeout(() => {
+          window.location.replace('/dashboard')
+        }, 500)
+      } else {
+        setDebug('Creating account…')
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: fullName, role } }
+        })
+        if (error) {
+          setError(error.message)
+          setDebug('Signup error: ' + error.message)
+          setLoading(false)
+          return
+        }
+        setDebug('Account created! User: ' + data.user?.email + ' — redirecting…')
+        setTimeout(() => {
+          window.location.replace('/dashboard')
+        }, 500)
+      }
+    } catch (err: any) {
+      setError('Unexpected error: ' + err.message)
+      setDebug('Caught: ' + err.message)
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -76,17 +99,13 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wider">
-                Email
-              </label>
+              <label className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wider">Email</label>
               <input className="input" type="email" value={email}
                 onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wider">
-                Password
-              </label>
+              <label className="block text-xs font-semibold text-ink-500 mb-1.5 uppercase tracking-wider">Password</label>
               <input className="input" type="password" value={password}
                 onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
             </div>
@@ -97,6 +116,12 @@ export default function LoginPage() {
               </p>
             )}
 
+            {debug && (
+              <p className="text-ink-400 text-xs bg-ink-50 border border-ink-100 rounded-lg px-4 py-2.5 font-mono">
+                {debug}
+              </p>
+            )}
+
             <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-2">
               {loading ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
             </button>
@@ -104,7 +129,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-ink-400 mt-6 font-body">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-            <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError('') }}
+            <button onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setDebug('') }}
               className="text-gold-600 hover:text-gold-700 font-semibold">
               {mode === 'login' ? 'Sign up' : 'Sign in'}
             </button>
