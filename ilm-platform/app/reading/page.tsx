@@ -43,7 +43,7 @@ export default function ReadingPage() {
   }
 
   const totalPages = logs.reduce((s, l) => s + l.pages_read, 0)
-  const books = [...new Set(logs.map(l => l.book_title))]
+  const totalBooks = Array.from(new Set(logs?.map((l: any) => l.book_title))).length
   const currentBook = logs[0]
 
   return (
@@ -66,7 +66,7 @@ export default function ReadingPage() {
           <p className="text-xs text-ink-500 font-semibold uppercase tracking-wider mt-1">Pages read</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-3xl font-display text-ink-800 font-bold">{books.length}</p>
+          <p className="text-3xl font-display text-ink-800 font-bold">{totalBooks}</p>
           <p className="text-xs text-ink-500 font-semibold uppercase tracking-wider mt-1">Books started</p>
         </div>
         <div className="card p-5 text-center">
