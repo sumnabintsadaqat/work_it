@@ -61,7 +61,7 @@ export default function HifzPage() {
 
   const avgQuality = entries.length
     ? (entries.reduce((s, e) => s + e.quality, 0) / entries.length).toFixed(1) : '—'
-  const juzRevised = Array.from(new Set(entries?.map((e: any) => e.juz)))
+  const juzRevised = Array.from(new Set(entries?.map((e: any) => e.juz))).length
 
   return (
     <div className="fade-up max-w-4xl">
